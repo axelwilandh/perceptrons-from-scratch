@@ -38,3 +38,45 @@ def make_linear_data(p=500, noise_rate=0.1):
         labels[mu] = label
 
     return states, labels
+
+def make_double_linear(p=500, noise_rate=0.1):
+    
+    n = (np.array([ 0.5 , 0.5]), np.array([ 0.5 , 0.5]))
+    c = (0.2,-0.2)
+
+    states = np.random.rand(p, 2) * 2 - 1
+    labels = np.empty(p)
+
+    for mu, state in enumerate(states):
+        # assign correct label
+        label = 1 if (np.dot(n[0],state) + c[0] > 0 and np.dot(n[1],state) + c[1] < 0) else -1
+
+        # flip label with probability = noise_rate
+        if np.random.rand() < noise_rate:
+            label *= -1
+
+        labels[mu] = label
+
+    return states, labels
+
+
+def make_squares(p=500, noise_rate=0.1):
+    
+    n = (np.array([ 0.5 , 0.5]), np.array([ 0.5 , 0.5]))
+    c = (0.2,-0.2)
+
+    states = np.random.rand(p, 2) * 2 - 1
+    labels = np.empty(p)
+
+    for mu, state in enumerate(states):
+        # assign correct label
+        label = 1 if state[0] * state[1] > 0 else -1
+
+        # flip label with probability = noise_rate
+        if np.random.rand() < noise_rate:
+            label *= -1
+
+        labels[mu] = label
+
+    return states, labels
+
