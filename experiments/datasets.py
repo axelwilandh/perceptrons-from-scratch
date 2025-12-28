@@ -1,5 +1,13 @@
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
+def load_csv_dataset(path, label_col):
+    data = pd.read_csv(path)
+    states = data.drop(columns=[label_col]).values
+    labels = data[label_col].values
+
+    return states, labels
 
 def make_linear_data(p=500, noise_rate=0.1):
     """
@@ -80,3 +88,17 @@ def make_squares(p=500, noise_rate=0.1):
 
     return states, labels
 
+
+def plot_data(X_states, y_labels, title):
+    plt.figure(figsize=(5,5))
+
+    # Plot, let red refer to the +1 label and blue to -1
+    for mu in range(len(y_labels)):
+        if y_labels[mu] == 1 :
+            plt.plot(X_states[mu,0], X_states[mu,1],'r.')
+        else :
+            plt.plot(X_states[mu,0], X_states[mu,1],'b.')
+
+    plt.axis([-1, 1, -1, 1])
+    plt.title(title)
+    plt.show()

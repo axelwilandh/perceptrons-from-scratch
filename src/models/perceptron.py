@@ -27,7 +27,10 @@ class Perceptron:
                 self.w += self.lr * delta * xi
                 self.b -= self.lr * delta
                 
-            # compute predictions for the full dataset
+            # compute predictions and loss for the epoch
+            outputs = self.forward(X)
+            loss = 0.5 * ((y - outputs)**2).mean()
             preds = self.predict(X)
             acc = (preds == y).mean()
-            print(f"Epoch {epoch+1}/{epochs} – Training accuracy: {acc:.2f}")
+
+            print(f"Epoch {epoch+1}/{epochs} – Loss: {loss:.4f} – Accuracy: {acc:.2f}")
