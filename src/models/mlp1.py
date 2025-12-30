@@ -29,7 +29,8 @@ class Mlp1:
         a2 = h @ self.W2 - self.b2          # pre-activation output
         out = self.g(a2)                    # output
 
-        return out, (a1, h, a2)
+        cache = (a1, h, a2)
+        return out, cache
     
     def predict(self, X):
         out, _ = self.forward(X)
