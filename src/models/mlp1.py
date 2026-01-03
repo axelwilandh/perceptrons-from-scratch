@@ -6,7 +6,7 @@ class Mlp1:
 
         # hidden layer parameters
         self.W1 = np.random.randn(hidden_dim, input_dim)
-        self.b1 = np.zeros(hidden_dim)
+        self.b1 = 0.1 * np.random.randn(hidden_dim)         #small random bias (to get different starts for neurons)
 
         # output layer parameters
         self.W2 = np.random.randn(hidden_dim)
