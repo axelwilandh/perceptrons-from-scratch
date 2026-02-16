@@ -1,19 +1,18 @@
 import numpy as np
+from src.models.activations import ACTIVATIONS
 
 class Perceptron:
-    def __init__(self, input_dim, lr=0.01):
+    def __init__(self, input_dim, activation, lr=0.01):
+        self.activation, self.activation_prim = ACTIVATIONS[activation]
         self.lr = lr
         self.w = np.random.randn(input_dim)
         self.b = 0.0
-
-    def g(self, x):
-        return np.tanh(x)
 
     def forward(self, X):
         """
         Compute the network output for input X
         """
-        return self.g(X @ self.w - self.b)
+        return self.activation(X @ self.w + self.b)
 
     def predict(self, X):
         out = self.forward(X)

@@ -5,11 +5,11 @@ class Mlp2:
         self.lr = lr
 
         # hidden layer 1 parameters
-        self.W1 = np.random.randn(hidden_dim_1, input_dim)
+        self.W1 = np.random.randn(input_dim, hidden_dim_1)
         self.b1 = 0.1 * np.random.randn(hidden_dim_1)         #small random bias (to get different starts for neurons)
 
         # hidden layer 2 parameters
-        self.W2 = np.random.randn(hidden_dim_2, hidden_dim_1)
+        self.W2 = np.random.randn(hidden_dim_1, hidden_dim_2)
         self.b2 = 0.1 * np.random.randn(hidden_dim_2)         #small random bias (to get different starts for neurons)
 
         # output layer parameters
@@ -22,19 +22,25 @@ class Mlp2:
     def g_prim(self, x): 
         return np.cosh(x)**(-2)
     
-    def forward(self, X):          #behöver moddas härifrån nedåt för 2hidden
+    def forward(self, X):          
         """
         Forward pass.
         Returns output AND cached intermediates for backprop.
         """
-        a1 = X @ self.W1.T - self.b1        # pre-activation hidden
-        h  = self.g(a1)                     # hidden activations
+        a1 = X @ self.W1 - self.b1        # pre-activation hidden 1
+        h1  = self.g(a1)                     # hidden 1 activations
 
-        a2 = h @ self.W2 - self.b2          # pre-activation output
-        out = self.g(a2)                    # output
+        a2 = h1 @ self.W2 - self.b2          # pre-activation hidden 2
+        h2 = self.g(a2)                    # hidden 2 activations
 
-        cache = (a1, h, a2)
+        a3 = h2 @ self.W3 - self.b3          # pre-activation output
+        out = self.g(a3)                    # output
+
+        cache = (a1, h1, a2, h2, a3)
         return out, cache
+    
+    def backward(self, X):
+        pass
     
     def predict(self, X):
         out, _ = self.forward(X)
