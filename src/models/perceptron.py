@@ -8,6 +8,11 @@ class Perceptron:
         self.w = np.random.randn(input_dim)
         self.b = 0.0
 
+        self.history = {
+            "loss": [],
+            "accuracy": []
+        }
+
     def forward(self, X):
         """
         Compute the network output for input X
@@ -24,12 +29,14 @@ class Perceptron:
                 out = self.forward(xi)
                 delta = (yi - out) * (1 - out**2)  # g'(x) = 1 - tanh^2
                 self.w += self.lr * delta * xi
-                self.b -= self.lr * delta
+                self.b += self.lr * delta
                 
             # compute predictions and loss for the epoch
             outputs = self.forward(X)
             loss = 0.5 * ((y - outputs)**2).mean()
-            preds = self.predict(X)
-            acc = (preds == y).mean()
+            acc = (self.predict(X) == y).mean()
+
+            self.history["loss"].append(loss)
+            self.history["accuracy"].append(acc)
 
             print(f"Epoch {epoch+1}/{epochs} – Loss: {loss:.4f} – Accuracy: {acc:.2f}")

@@ -1,7 +1,9 @@
 import numpy as np
+from src.models.activations import ACTIVATIONS
 
 class Mlp2:
-    def __init__(self, input_dim, hidden_dim_1, hidden_dim_2, lr=0.01):
+    def __init__(self, input_dim, hidden_dim_1, hidden_dim_2, activation, lr=0.01):
+        self.activation, self.activation_prim = ACTIVATIONS[activation]
         self.lr = lr
 
         # hidden layer 1 parameters
@@ -16,31 +18,50 @@ class Mlp2:
         self.W3 = np.random.randn(hidden_dim_2)
         self.b3 = 0.0
 
-    def g(self, x):
-        return np.tanh(x)
-    
-    def g_prim(self, x): 
-        return np.cosh(x)**(-2)
+        self.history = {
+            "loss": [],
+            "accuracy": []
+        }
     
     def forward(self, X):          
         """
         Forward pass.
         Returns output AND cached intermediates for backprop.
         """
-        a1 = X @ self.W1 - self.b1        # pre-activation hidden 1
-        h1  = self.g(a1)                     # hidden 1 activations
+        a1 = X @ self.W1 + self.b1        # pre-activation hidden 1
+        h1  = self.activation(a1)                     # hidden 1 activations
 
-        a2 = h1 @ self.W2 - self.b2          # pre-activation hidden 2
-        h2 = self.g(a2)                    # hidden 2 activations
+        a2 = h1 @ self.W2 + self.b2          # pre-activation hidden 2
+        h2 = self.activation(a2)                    # hidden 2 activations
 
-        a3 = h2 @ self.W3 - self.b3          # pre-activation output
-        out = self.g(a3)                    # output
+        a3 = h2 @ self.W3 + self.b3          # pre-activation output
+        out = self.activation(a3)                    # output
 
         cache = (a1, h1, a2, h2, a3)
         return out, cache
     
-    def backward(self, X):
-        pass
+    def backward(self, xi, yi, out, cache):
+        a1, h1, a2, h2, a3 = cache
+
+        # output layer gradients
+        delta3 = (yi - out) * self.activation_prim(a3)   # scalar
+
+        dW3 = delta3 * h2            # (H,)
+        db3 = delta3                # scalar
+
+        # 2nd hidden layer gradients
+        delta2 = self.activation_prim(a2) * (self.W3 * delta3)
+
+        dW2 = np.outer(h1, delta2)      # (3,3) 
+        db2 = delta2 
+
+        # 1st hidden layer gradients
+        delta1 = self.activation_prim(a1) * (self.W2 @ delta2)    # (H,)
+
+        dW1 = np.outer(xi, delta1)      # (D, H)
+        db1 = delta1
+
+        return dW1, db1, dW2, db2, dW3, db3
     
     def predict(self, X):
         out, _ = self.forward(X)
@@ -51,27 +72,28 @@ class Mlp2:
 
             for xi, yi in zip(X, y):
 
-                # ---------- forward ----------
-                out, (a1, h, a2) = self.forward(xi)
+                # forward
+                out, cache = self.forward(xi)
 
-                # ---------- backprop ----------
-                # output layer delta
-                delta2 = (yi - out) * self.g_prim(a2)
+                # backprop
+                dW1, db1, dW2, db2, dW3, db3 = self.backward(xi, yi, out, cache)
 
-                # hidden layer delta (vector!)
-                delta1 = self.g_prim(a1) * self.W2 * delta2
+                # updates
+                self.W3 += self.lr * dW3
+                self.b3 += self.lr * db3
 
-                # ---------- updates ----------
-                self.W2 += self.lr * delta2 * h
-                self.b2 -= self.lr * delta2
+                self.W2 += self.lr * dW2
+                self.b2 += self.lr * db2
 
-                self.W1 += self.lr * np.outer(delta1, xi)
-                self.b1 -= self.lr * delta1
+                self.W1 += self.lr * dW1
+                self.b1 += self.lr * db1
 
-            # ---------- monitoring ----------
+            # monitoring
             outputs, _ = self.forward(X)
             loss = 0.5 * ((y - outputs)**2).mean()
-            preds = self.predict(X)
-            acc = (preds == y).mean()
+            acc = (self.predict(X) == y).mean()
+
+            self.history["loss"].append(loss)
+            self.history["accuracy"].append(acc)
 
             print(f"Epoch {epoch+1}/{epochs} – Loss: {loss:.4f} – Accuracy: {acc:.2f}")
